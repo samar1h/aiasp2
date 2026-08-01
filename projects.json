@@ -1,8 +1,47 @@
 [
   {
-    "title": "testing",
-    "source_url": "https://github.com/samar1h/aiasp2/tree/main/projects/testing",
-    "url": "projects/testing/",
-    "added": "2026-08-01"
+    "title": "PDF Splitter",
+    "description": "Split a PDF into individual pages entirely in your browser, no upload required and everything stays local to your device for privacy and speed.",
+    "keywords": ["pdf", "split", "document", "offline"],
+    "icon": "file-text",
+    "url": "projects/pdf-splitter/",
+    "source_url": "https://github.com/you/repo/tree/main/projects/pdf-splitter",
+    "added": "2026-07-14"
+  },
+  {
+    "title": "Color Palette Extractor",
+    "description": "Upload an image, get back a palette.",
+    "keywords": ["color", "image", "design"],
+    "favicon": "https://example.com/nonexistent-favicon.png",
+    "url": "https://example.com/palette",
+    "source_url": "https://github.com/you/repo/tree/main/projects/palette",
+    "added": "2026-06-01"
+  },
+  {
+    "title": "",
+    "description": "A little markdown live-preview editor.",
+    "keywords": ["markdown", "editor"],
+    "source_url": "https://github.com/you/repo/tree/main/projects/md-editor",
+    "added": "2026-05-20"
+  },
+  {
+    "title": "No Source Test",
+    "description": "Testing the missing source_url disabled state.",
+    "keywords": ["test"],
+    "url": "https://example.com/test",
+    "added": "2026-04-01"
+  },
+  {
+    "title": "Legacy Tool",
+    "description": "An older project with no added date, should sort last.",
+    "keywords": ["legacy"],
+    "source_url": "https://github.com/you/repo/tree/main/projects/legacy"
+  },
+  "not an object",
+  {
+    "title": "Icon Fallback Test",
+    "icon": "totally-not-a-real-icon-xyz",
+    "source_url": "https://github.com/you/repo/tree/main/projects/iconfallback",
+    "added": "2026-03-15"
   }
 ]
