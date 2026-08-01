@@ -92,6 +92,8 @@ body {
 }
 .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px 48px; }
 
+.search-sticky-top { padding-top: 28px; }
+
 .search-sticky {
   position: sticky;
   top: 0;
@@ -213,7 +215,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0 10px;
+  padding: 12px 0 4px;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -241,50 +243,58 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
   background: var(--bg-elevated);
-  color: var(--ink);
+  color: var(--ink-soft);
   cursor: pointer;
-  transition: border-color 0.15s ease;
-  flex-shrink: 0;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
-.sort-btn svg, .theme-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.theme-btn:active { transform: scale(0.92); }
+.theme-btn svg { width: 17px; height: 17px; }
+.sort-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 
 .card-list { display: flex; flex-direction: column; gap: 10px; }
 .card {
   display: flex;
-  gap: 12px;
-  padding: 14px;
+  gap: 13px;
+  padding: 15px;
   border-radius: var(--radius);
   background: var(--bg-elevated);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
-  animation: rise 0.35s ease backwards;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  animation: rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+  cursor: pointer;
 }
+.card:active { transform: scale(0.988); }
 .card:hover { border-color: var(--accent); }
-@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.card.is-open { border-color: var(--accent); box-shadow: 0 2px 4px rgba(36,30,26,0.06), 0 8px 24px rgba(36,30,26,0.07); }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .card-icon {
   flex-shrink: 0;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: var(--accent-soft);
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--tone-bg, var(--accent-soft));
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.card-icon svg { width: 20px; height: 20px; color: var(--accent); stroke: currentColor; }
+.card.is-open .card-icon { transform: scale(1.06); }
+.card-icon svg { width: 21px; height: 21px; color: var(--tone-fg, var(--accent)); stroke: currentColor; }
 .card-icon img { width: 100%; height: 100%; object-fit: cover; }
 .card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.card-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .card-title {
   font-family: 'Fraunces', serif;
   font-weight: 600;
-  font-size: 16.5px;
+  font-size: 17px;
   margin: 0;
   line-height: 1.3;
 }
@@ -298,6 +308,16 @@ body {
   font-size: 13.5px;
   display: inline-block;
 }
+.card-chevron {
+  flex-shrink: 0;
+  color: var(--ink-faint);
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
+}
+.card-chevron svg { width: 100%; height: 100%; }
+.card.is-open .card-chevron { transform: rotate(180deg); color: var(--accent); }
 .card-desc {
   font-size: 13.5px;
   color: var(--ink-soft);
@@ -317,7 +337,23 @@ body {
   cursor: pointer;
   display: inline;
 }
-.card-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); margin-top: 8px; }
+.card-expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card.is-open .card-expand { grid-template-rows: 1fr; }
+.card-expand-inner { overflow: hidden; }
+.card-keywords { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.card-keyword {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.card-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); margin-top: 10px; }
 .card-actions { display: flex; gap: 8px; margin-top: 12px; }
 .action-btn {
   display: flex;
@@ -393,24 +429,35 @@ body {
 .modal li { margin-bottom: 6px; word-break: break-all; overflow-wrap: break-word; }
 .modal button { width: 100%; padding: 10px; border-radius: var(--radius-sm); border: none; background: var(--accent); color: var(--accent-ink); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 
+.tone-0 { --tone-bg: #F2DED0; --tone-fg: #C9622D; }
+.tone-1 { --tone-bg: #DCE8DC; --tone-fg: #4C7A52; }
+.tone-2 { --tone-bg: #DCE3EF; --tone-fg: #4A6B9E; }
+.tone-3 { --tone-bg: #EDE0F0; --tone-fg: #8A5A9E; }
+.tone-4 { --tone-bg: #F0E4D0; --tone-fg: #A47D2E; }
+html[data-theme="dark"] .tone-0 { --tone-bg: #3A281D; --tone-fg: #E08A57; }
+html[data-theme="dark"] .tone-1 { --tone-bg: #253A28; --tone-fg: #82B389; }
+html[data-theme="dark"] .tone-2 { --tone-bg: #24304A; --tone-fg: #8FAEDE; }
+html[data-theme="dark"] .tone-3 { --tone-bg: #362A3E; --tone-fg: #C79BDA; }
+html[data-theme="dark"] .tone-4 { --tone-bg: #3A2F1A; --tone-fg: #D9B860; }
+
 ::selection { background: var(--accent-soft); color: var(--ink); }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="search-sticky">
+  <div class="search-sticky search-sticky-top">
     <div class="search-row">
       <div class="search-box">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input id="search-input" type="text" placeholder="Search projects…" autocomplete="off">
       </div>
       <button id="filter-toggle-btn" class="filter-toggle-btn" style="display:none;"></button>
+      <button id="theme-btn" class="theme-btn"></button>
     </div>
     <div id="chips-row" class="chips-row" style="display:none;"></div>
     <div class="toolbar">
       <span id="result-count" class="result-count">—</span>
       <div class="toolbar-controls">
-        <button id="theme-btn" class="theme-btn"></button>
         <button id="sort-btn" class="sort-btn"></button>
       </div>
     </div>
@@ -432,6 +479,7 @@ body {
     loadState: 'loading',
     errorDetail: '',
     expandedDescriptions: new Set(),
+    openCards: new Set(),
     dataIssues: { missingTitles: [], malformed: [] }
   };
 
@@ -790,9 +838,9 @@ body {
     }, 150);
   });
 
-  function renderCardIcon(p) {
+  function renderCardIcon(p, idx) {
     var wrap = document.createElement('div');
-    wrap.className = 'card-icon';
+    wrap.className = 'card-icon tone-' + (idx % 5);
     if (p.icon && iconExists(p.icon)) {
       wrap.appendChild(makeIcon(p.icon));
     } else if (p.favicon) {
@@ -824,11 +872,16 @@ body {
       var el = document.createElement('div');
       el.className = 'card';
       el.style.animationDelay = (idx * 25) + 'ms';
+      var cardKey = 'c' + p._index;
+      if (state.openCards.has(cardKey)) el.classList.add('is-open');
 
-      el.appendChild(renderCardIcon(p));
+      el.appendChild(renderCardIcon(p, idx));
 
       var body = document.createElement('div');
       body.className = 'card-body';
+
+      var topRow = document.createElement('div');
+      topRow.className = 'card-top-row';
 
       var titleEl = document.createElement('h3');
       titleEl.className = 'card-title';
@@ -840,7 +893,13 @@ body {
         span.textContent = 'Missing title';
         titleEl.appendChild(span);
       }
-      body.appendChild(titleEl);
+      topRow.appendChild(titleEl);
+
+      var chevron = document.createElement('span');
+      chevron.className = 'card-chevron';
+      chevron.appendChild(makeIcon('chevron-down'));
+      topRow.appendChild(chevron);
+      body.appendChild(topRow);
 
       if (p.description) {
         var descKey = 'd' + p._index;
@@ -859,7 +918,8 @@ body {
             var expanded = state.expandedDescriptions.has(descKey);
             toggle.textContent = expanded ? ' less' : ' more';
             if (expanded) descEl.classList.remove('clamp-2');
-            toggle.addEventListener('click', function() {
+            toggle.addEventListener('click', function(e) {
+              e.stopPropagation();
               var isExpanded = state.expandedDescriptions.has(descKey);
               if (isExpanded) {
                 state.expandedDescriptions.delete(descKey);
@@ -876,12 +936,29 @@ body {
         });
       }
 
+      var expandWrap = document.createElement('div');
+      expandWrap.className = 'card-expand';
+      var expandInner = document.createElement('div');
+      expandInner.className = 'card-expand-inner';
+
+      if (p.keywords && p.keywords.length) {
+        var kwWrap = document.createElement('div');
+        kwWrap.className = 'card-keywords';
+        p.keywords.forEach(function(kw) {
+          var tag = document.createElement('span');
+          tag.className = 'card-keyword';
+          tag.textContent = kw;
+          kwWrap.appendChild(tag);
+        });
+        expandInner.appendChild(kwWrap);
+      }
+
       var dateStr = p.added ? formatDate(p.added) : null;
       if (dateStr) {
         var dateEl = document.createElement('span');
         dateEl.className = 'card-date';
         dateEl.textContent = dateStr;
-        body.appendChild(dateEl);
+        expandInner.appendChild(dateEl);
       }
 
       var actions = document.createElement('div');
@@ -893,6 +970,7 @@ body {
         visitBtn.href = p.url;
         visitBtn.target = '_blank';
         visitBtn.rel = 'noopener noreferrer';
+        visitBtn.addEventListener('click', function(e) { e.stopPropagation(); });
         visitBtn.appendChild(makeIcon('external-link'));
         var visitLabel = document.createElement('span');
         visitLabel.textContent = 'Visit';
@@ -912,7 +990,8 @@ body {
         srcBtn.type = 'button';
         srcBtn.className = 'action-btn is-disabled';
         srcBtn.setAttribute('aria-disabled', 'true');
-        srcBtn.addEventListener('click', function() {
+        srcBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
           var existing = srcBtn.querySelector('.action-tooltip');
           if (existing) { existing.remove(); return; }
           var tip = document.createElement('span');
@@ -922,14 +1001,28 @@ body {
           setTimeout(function() { if (tip.parentNode) tip.remove(); }, 2200);
         });
       }
+      srcBtn.addEventListener('click', function(e) { e.stopPropagation(); });
       srcBtn.appendChild(makeIcon('code'));
       var srcLabel = document.createElement('span');
       srcLabel.textContent = 'Source';
       srcBtn.appendChild(srcLabel);
       actions.appendChild(srcBtn);
 
-      body.appendChild(actions);
+      expandInner.appendChild(actions);
+      expandWrap.appendChild(expandInner);
+      body.appendChild(expandWrap);
       el.appendChild(body);
+
+      el.addEventListener('click', function() {
+        if (state.openCards.has(cardKey)) {
+          state.openCards.delete(cardKey);
+          el.classList.remove('is-open');
+        } else {
+          state.openCards.add(cardKey);
+          el.classList.add('is-open');
+        }
+        refreshIcons();
+      });
 
       return el;
     } catch (e) {
