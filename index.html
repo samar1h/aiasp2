@@ -221,24 +221,26 @@ body {
   padding: 12px 0 4px;
   gap: 10px;
   flex-wrap: wrap;
+  height: 26px;
 }
 .result-count {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12.5px;
   color: var(--ink-faint);
+  line-height: 26px;
 }
-.toolbar-controls { display: flex; align-items: center; gap: 6px; }
+.toolbar-controls { display: flex; align-items: center; gap: 6px; height: 26px; }
 .sort-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 11px;
-  border-radius: var(--radius-sm);
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 7px;
   border: 1px solid var(--line);
   background: var(--bg-elevated);
   color: var(--ink);
-  font-size: 12.5px;
-  font-family: 'JetBrains Mono', monospace;
   cursor: pointer;
   transition: border-color 0.15s ease;
 }
@@ -258,7 +260,7 @@ body {
 }
 .theme-btn:active { transform: scale(0.92); }
 .theme-btn svg { width: 13px; height: 13px; }
-.sort-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.sort-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
 
 .card-list { display: flex; flex-direction: column; gap: 10px; }
 .card {
@@ -454,16 +456,16 @@ html[data-theme="dark"] .tone-4 { --tone-bg: #3A2F1A; --tone-fg: #D9B860; }
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input id="search-input" type="text" placeholder="Search projects…" autocomplete="off">
       </div>
-      <button id="options-toggle-btn" class="filter-toggle-btn" aria-label="Show options" title="Options"></button>
+      <button id="options-toggle-btn" class="filter-toggle-btn" aria-label="Show filters" title="Filters"></button>
     </div>
     <div id="options-panel" class="options-panel">
       <div id="chips-row" class="chips-row" style="display:none;"></div>
-      <div class="toolbar">
-        <span id="result-count" class="result-count">—</span>
-        <div class="toolbar-controls">
-          <button id="sort-btn" class="sort-btn"></button>
-          <button id="theme-btn" class="theme-btn"></button>
-        </div>
+    </div>
+    <div class="toolbar">
+      <span id="result-count" class="result-count">—</span>
+      <div class="toolbar-controls">
+        <button id="theme-btn" class="theme-btn"></button>
+        <button id="sort-btn" class="sort-btn"></button>
       </div>
     </div>
   </div>
@@ -716,9 +718,9 @@ html[data-theme="dark"] .tone-4 { --tone-bg: #3A2F1A; --tone-fg: #D9B860; }
   }
 
 
-  var optionsToggleBtn = document.getElementById('options-toggle-btn');
-  var optionsPanel = document.getElementById('options-panel');
-  var optionsVisible = false;
+  var filterToggleBtn = document.getElementById('options-toggle-btn');
+  var filterPanel = document.getElementById('options-panel');
+  var filtersVisible = false;
   var hasKeywords = false;
 
   function buildChips() {
@@ -745,33 +747,33 @@ html[data-theme="dark"] .tone-4 { --tone-bg: #3A2F1A; --tone-fg: #D9B860; }
         }
         applyFilters();
         renderList();
-        renderOptionsToggleBtn();
+        renderFilterToggleBtn();
       });
       chipsRow.appendChild(chip);
     });
-    renderOptionsToggleBtn();
+    renderFilterToggleBtn();
   }
 
-  function renderOptionsToggleBtn() {
-    optionsToggleBtn.innerHTML = '';
-    optionsToggleBtn.appendChild(makeIcon('list-filter'));
-    optionsToggleBtn.classList.toggle('active', state.activeChips.size > 0 || optionsVisible);
+  function renderFilterToggleBtn() {
+    filterToggleBtn.innerHTML = '';
+    filterToggleBtn.appendChild(makeIcon('list-filter'));
+    filterToggleBtn.classList.toggle('active', state.activeChips.size > 0 || filtersVisible);
     if (state.activeChips.size > 0) {
       var badge = document.createElement('span');
       badge.className = 'badge';
       badge.textContent = state.activeChips.size;
-      optionsToggleBtn.appendChild(badge);
+      filterToggleBtn.appendChild(badge);
     }
-    optionsToggleBtn.setAttribute('aria-label', optionsVisible ? 'Hide options' : 'Show options');
-    optionsToggleBtn.title = optionsVisible ? 'Hide options' : 'Show options';
+    filterToggleBtn.setAttribute('aria-label', filtersVisible ? 'Hide filters' : 'Show filters');
+    filterToggleBtn.title = filtersVisible ? 'Hide filters' : 'Show filters';
     refreshIcons();
   }
 
-  optionsToggleBtn.addEventListener('click', function() {
-    optionsVisible = !optionsVisible;
-    optionsPanel.classList.toggle('is-visible', optionsVisible);
+  filterToggleBtn.addEventListener('click', function() {
+    filtersVisible = !filtersVisible;
+    filterPanel.classList.toggle('is-visible', filtersVisible);
     if (hasKeywords) chipsRow.style.display = 'flex';
-    renderOptionsToggleBtn();
+    renderFilterToggleBtn();
   });
 
   function applyFilters() {
@@ -817,9 +819,8 @@ html[data-theme="dark"] .tone-4 { --tone-bg: #3A2F1A; --tone-fg: #D9B860; }
     var mode = SORT_MODES[state.sortMode];
     sortBtn.innerHTML = '';
     sortBtn.appendChild(makeIcon(mode.icon));
-    var label = document.createElement('span');
-    label.textContent = mode.label;
-    sortBtn.appendChild(label);
+    sortBtn.setAttribute('aria-label', 'Sort: ' + mode.label);
+    sortBtn.title = 'Sort: ' + mode.label;
     refreshIcons();
   }
 
