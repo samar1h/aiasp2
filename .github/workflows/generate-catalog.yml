@@ -37,10 +37,14 @@ jobs:
 
       # Detect whether projects.json actually changed, so we don't create
       # no-op commits when a push didn't add or change any project folders.
+      # Stage the file first: `git diff --quiet` alone ignores untracked
+      # files, which would silently skip the very first commit of a
+      # brand-new projects.json.
       - name: Check for changes
         id: check_changes
         run: |
-          if git diff --quiet -- projects.json; then
+          git add projects.json
+          if git diff --cached --quiet -- projects.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -48,12 +52,12 @@ jobs:
 
       # Commit and push the updated catalog using the built-in GITHUB_TOKEN
       # (no extra secrets/PATs needed). [skip ci] prevents this automated
-      # commit from re-triggering the workflow in a loop.
+      # commit from re-triggering the workflow in a loop. projects.json is
+      # already staged from the previous step.
       - name: Commit and push updated catalog
         if: steps.check_changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add projects.json
           git commit -m "chore: update project catalog [skip ci]"
           git push
