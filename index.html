@@ -101,10 +101,45 @@ body {
   padding-bottom: 12px;
   transition: background 0.25s ease;
 }
-.search-box {
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.search-box { position: relative; display: flex; align-items: center; flex: 1; min-width: 0; }
+.filter-toggle-btn {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.filter-toggle-btn svg { width: 17px; height: 17px; }
+.filter-toggle-btn.active { border-color: var(--accent); color: var(--accent); }
+.filter-toggle-btn .badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 .search-box svg { position: absolute; left: 14px; width: 17px; height: 17px; color: var(--ink-faint); pointer-events: none; }
 .search-box input {
@@ -185,7 +220,7 @@ body {
   color: var(--ink-faint);
 }
 .toolbar-controls { display: flex; align-items: center; gap: 6px; }
-.sort-btn, .theme-btn {
+.sort-btn {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -199,6 +234,20 @@ body {
   cursor: pointer;
   transition: border-color 0.15s ease;
 }
+.theme-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-elevated);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  flex-shrink: 0;
+}
 .sort-btn svg, .theme-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 
 .card-list { display: flex; flex-direction: column; gap: 10px; }
@@ -211,7 +260,9 @@ body {
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
   animation: rise 0.35s ease backwards;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+.card:hover { border-color: var(--accent); }
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .card-icon {
   flex-shrink: 0;
@@ -256,10 +307,12 @@ body {
   border: none;
   color: var(--accent);
   font-size: 12.5px;
-  font-family: 'JetBrains Mono', monospace;
-  padding: 4px 0 0;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 0;
+  margin: 0;
   cursor: pointer;
-  align-self: flex-start;
+  display: inline;
 }
 .card-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); margin-top: 8px; }
 .card-actions { display: flex; gap: 8px; margin-top: 12px; }
@@ -277,7 +330,10 @@ body {
   background: transparent;
   color: var(--ink-soft);
   position: relative;
+  transition: border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
 }
+.action-btn:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
+.action-btn.primary:not(:disabled):hover { opacity: 0.9; color: var(--accent-ink); }
 .action-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
 .action-btn.primary {
   background: var(--accent);
@@ -344,9 +400,12 @@ body {
 <body>
 <div class="wrap">
   <div class="search-sticky">
-    <div class="search-box">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="search-input" type="text" placeholder="Search projects…" autocomplete="off">
+    <div class="search-row">
+      <div class="search-box">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="search-input" type="text" placeholder="Search projects…" autocomplete="off">
+      </div>
+      <button id="filter-toggle-btn" class="filter-toggle-btn" style="display:none;"></button>
     </div>
     <div id="chips-row" class="chips-row" style="display:none;"></div>
     <div class="toolbar">
@@ -419,6 +478,19 @@ body {
         lucide.createIcons();
       }
     } catch (e) {}
+    healBrokenIcons();
+  }
+
+  function healBrokenIcons() {
+    document.querySelectorAll('i[data-lucide]').forEach(function(el) {
+      if (!el.querySelector('svg')) {
+        var fallback = el.getAttribute('data-lucide') === 'sun' || el.getAttribute('data-lucide') === 'moon' ? 'circle' : 'box';
+        el.setAttribute('data-lucide', fallback);
+        try {
+          if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+        } catch (e) {}
+      }
+    });
   }
 
   function initTheme() {
@@ -433,9 +505,8 @@ body {
     var theme = document.documentElement.getAttribute('data-theme');
     themeBtn.innerHTML = '';
     themeBtn.appendChild(makeIcon(theme === 'dark' ? 'moon' : 'sun'));
-    var label = document.createElement('span');
-    label.textContent = theme === 'dark' ? 'Dark' : 'Light';
-    themeBtn.appendChild(label);
+    themeBtn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    themeBtn.title = theme === 'dark' ? 'Dark' : 'Light';
     refreshIcons();
   }
 
@@ -594,6 +665,9 @@ body {
 
   document.getElementById('data-issue-banner').addEventListener('click', openDataIssuesModal);
 
+  var filterToggleBtn = document.getElementById('filter-toggle-btn');
+  var filtersVisible = false;
+
   function buildChips() {
     var allKeywords = new Set();
     state.projects.forEach(function(p) {
@@ -601,9 +675,11 @@ body {
     });
     if (allKeywords.size === 0) {
       chipsRow.style.display = 'none';
+      filterToggleBtn.style.display = 'none';
       return;
     }
-    chipsRow.style.display = 'flex';
+    filterToggleBtn.style.display = 'flex';
+    chipsRow.style.display = filtersVisible ? 'flex' : 'none';
     chipsRow.innerHTML = '';
     Array.from(allKeywords).sort(function(a, b) { return a.localeCompare(b); }).forEach(function(kw) {
       var chip = document.createElement('button');
@@ -621,10 +697,33 @@ body {
         }
         applyFilters();
         renderList();
+        renderFilterToggleBtn();
       });
       chipsRow.appendChild(chip);
     });
+    renderFilterToggleBtn();
   }
+
+  function renderFilterToggleBtn() {
+    filterToggleBtn.innerHTML = '';
+    filterToggleBtn.appendChild(makeIcon('list-filter'));
+    filterToggleBtn.classList.toggle('active', state.activeChips.size > 0);
+    if (state.activeChips.size > 0) {
+      var badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = state.activeChips.size;
+      filterToggleBtn.appendChild(badge);
+    }
+    filterToggleBtn.setAttribute('aria-label', filtersVisible ? 'Hide filters' : 'Show filters');
+    filterToggleBtn.title = filtersVisible ? 'Hide filters' : 'Show filters';
+    refreshIcons();
+  }
+
+  filterToggleBtn.addEventListener('click', function() {
+    filtersVisible = !filtersVisible;
+    chipsRow.style.display = filtersVisible ? 'flex' : 'none';
+    renderFilterToggleBtn();
+  });
 
   function applyFilters() {
     var q = state.search.trim().toLowerCase();
@@ -749,30 +848,32 @@ body {
         var descKey = 'd' + p._index;
         var descEl = document.createElement('p');
         descEl.className = 'card-desc clamp-2';
-        descEl.textContent = p.description;
+        var descText = document.createElement('span');
+        descText.textContent = p.description;
+        descEl.appendChild(descText);
         body.appendChild(descEl);
 
         requestAnimationFrame(function() {
-          if (descEl.scrollHeight > descEl.clientHeight + 2) {
+          if (descEl.scrollHeight > descEl.clientHeight + 2 || state.expandedDescriptions.has(descKey)) {
             var toggle = document.createElement('button');
             toggle.type = 'button';
             toggle.className = 'more-toggle';
             var expanded = state.expandedDescriptions.has(descKey);
-            toggle.textContent = expanded ? 'less' : 'more';
+            toggle.textContent = expanded ? ' less' : ' more';
             if (expanded) descEl.classList.remove('clamp-2');
             toggle.addEventListener('click', function() {
               var isExpanded = state.expandedDescriptions.has(descKey);
               if (isExpanded) {
                 state.expandedDescriptions.delete(descKey);
                 descEl.classList.add('clamp-2');
-                toggle.textContent = 'more';
+                toggle.textContent = ' more';
               } else {
                 state.expandedDescriptions.add(descKey);
                 descEl.classList.remove('clamp-2');
-                toggle.textContent = 'less';
+                toggle.textContent = ' less';
               }
             });
-            body.appendChild(toggle);
+            descEl.appendChild(toggle);
           }
         });
       }
@@ -823,7 +924,7 @@ body {
           setTimeout(function() { if (tip.parentNode) tip.remove(); }, 2200);
         });
       }
-      srcBtn.appendChild(makeIcon('github'));
+      srcBtn.appendChild(makeIcon('code'));
       var srcLabel = document.createElement('span');
       srcLabel.textContent = 'Source';
       srcBtn.appendChild(srcLabel);
@@ -876,14 +977,6 @@ body {
     });
     contentArea.appendChild(list);
     refreshIcons();
-    list.querySelectorAll('.card-icon').forEach(function(iconWrap) {
-      var placeholder = iconWrap.querySelector('i[data-lucide]');
-      if (placeholder && !placeholder.querySelector('svg')) {
-        iconWrap.innerHTML = '';
-        iconWrap.appendChild(makeIcon('box'));
-        refreshIcons();
-      }
-    });
   }
 
   function render() {
