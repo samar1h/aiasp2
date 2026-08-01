@@ -192,9 +192,9 @@ body {
   align-items: center;
   gap: 8px;
   width: 100%;
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
   border: 1px solid var(--error);
   background: var(--error-bg);
   color: var(--error);
@@ -202,7 +202,10 @@ body {
   font-family: 'JetBrains Mono', monospace;
   cursor: pointer;
   text-align: left;
+  box-shadow: var(--shadow);
+  transition: opacity 0.15s ease;
 }
+.data-issue-banner:hover { opacity: 0.85; }
 .data-issue-banner svg { width: 15px; height: 15px; flex-shrink: 0; }
 .data-issue-banner span.chev { margin-left: auto; opacity: 0.7; }
 
@@ -323,24 +326,20 @@ body {
   padding: 7px 12px;
   border-radius: 8px;
   font-size: 12.5px;
+  font-weight: 500;
   font-family: 'JetBrains Mono', monospace;
   cursor: pointer;
   text-decoration: none;
   border: 1px solid var(--line);
-  background: transparent;
-  color: var(--ink-soft);
+  background: var(--bg-elevated);
+  color: var(--ink);
   position: relative;
-  transition: border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
-.action-btn:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
-.action-btn.primary:not(:disabled):hover { opacity: 0.9; color: var(--accent-ink); }
+.action-btn:hover { border-color: var(--accent); color: var(--accent); }
 .action-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
-.action-btn.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
-}
-.action-btn:disabled { opacity: 0.4; cursor: default; }
+.action-btn.is-disabled { opacity: 0.45; cursor: default; }
+.action-btn.is-disabled:hover { border-color: var(--line); color: var(--ink); }
 .action-tooltip {
   position: absolute;
   bottom: calc(100% + 6px);
@@ -415,7 +414,6 @@ body {
         <button id="sort-btn" class="sort-btn"></button>
       </div>
     </div>
-    <button id="data-issue-banner" class="data-issue-banner" style="display:none;"></button>
   </div>
 
   <div id="content-area"></div>
@@ -590,15 +588,15 @@ body {
     var missingTitles = state.projects.filter(function(p) { return !p._malformed && !p.title; });
     var malformed = state.projects.filter(function(p) { return p._malformed; });
     state.dataIssues = { missingTitles: missingTitles, malformed: malformed };
+  }
 
-    var banner = document.getElementById('data-issue-banner');
-    var total = missingTitles.length + malformed.length;
-    if (total === 0) {
-      banner.style.display = 'none';
-      return;
-    }
-    banner.style.display = 'flex';
-    banner.innerHTML = '';
+  function buildDataIssueBanner() {
+    var issues = state.dataIssues || { missingTitles: [], malformed: [] };
+    var total = issues.missingTitles.length + issues.malformed.length;
+    if (total === 0) return null;
+    var banner = document.createElement('button');
+    banner.type = 'button';
+    banner.className = 'data-issue-banner';
     banner.appendChild(makeIcon('triangle-alert'));
     var label = document.createElement('span');
     label.textContent = total === 1 ? '1 project has a data issue' : total + ' projects have data issues';
@@ -607,7 +605,8 @@ body {
     chev.className = 'chev';
     chev.textContent = 'Details →';
     banner.appendChild(chev);
-    refreshIcons();
+    banner.addEventListener('click', openDataIssuesModal);
+    return banner;
   }
 
   function openDataIssuesModal() {
@@ -663,7 +662,6 @@ body {
     refreshIcons();
   }
 
-  document.getElementById('data-issue-banner').addEventListener('click', openDataIssuesModal);
 
   var filterToggleBtn = document.getElementById('filter-toggle-btn');
   var filtersVisible = false;
@@ -891,7 +889,7 @@ body {
 
       if (p.url) {
         var visitBtn = document.createElement('a');
-        visitBtn.className = 'action-btn primary';
+        visitBtn.className = 'action-btn';
         visitBtn.href = p.url;
         visitBtn.target = '_blank';
         visitBtn.rel = 'noopener noreferrer';
@@ -912,8 +910,8 @@ body {
       } else {
         srcBtn = document.createElement('button');
         srcBtn.type = 'button';
-        srcBtn.className = 'action-btn';
-        srcBtn.disabled = true;
+        srcBtn.className = 'action-btn is-disabled';
+        srcBtn.setAttribute('aria-disabled', 'true');
         srcBtn.addEventListener('click', function() {
           var existing = srcBtn.querySelector('.action-tooltip');
           if (existing) { existing.remove(); return; }
@@ -928,7 +926,6 @@ body {
       var srcLabel = document.createElement('span');
       srcLabel.textContent = 'Source';
       srcBtn.appendChild(srcLabel);
-      if (!p.url) srcBtn.classList.add('primary');
       actions.appendChild(srcBtn);
 
       body.appendChild(actions);
@@ -944,6 +941,9 @@ body {
     resultCount.textContent = state.filtered.length + ' of ' + state.projects.filter(function(p) { return !p._malformed; }).length + ' projects';
 
     contentArea.innerHTML = '';
+
+    var banner = buildDataIssueBanner();
+    if (banner) contentArea.appendChild(banner);
 
     if (state.projects.filter(function(p) { return !p._malformed; }).length === 0) {
       var empty = document.createElement('div');
