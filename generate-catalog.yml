@@ -1,0 +1,59 @@
+name: Generate project catalog
+
+# Run whenever a push to main touches anything under projects/, and allow
+# manual re-runs on demand from the Actions tab.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "projects/**"
+  workflow_dispatch: {}
+
+# Needed so the workflow's GITHUB_TOKEN can push the updated projects.json
+# back to the repo.
+permissions:
+  contents: write
+
+jobs:
+  generate-catalog:
+    runs-on: ubuntu-latest
+    steps:
+      # Check out the repository so the script can read projects/ and the
+      # existing projects.json.
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Set up a recent Python 3.x for the scanner script.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Run the scanner. This regenerates projects.json in place. A
+      # project.json syntax error (or a missing projects/ directory) makes
+      # the script exit non-zero, which fails this step and the whole run.
+      - name: Generate catalog
+        run: python3 scripts/generate_catalog.py
+
+      # Detect whether projects.json actually changed, so we don't create
+      # no-op commits when a push didn't add or change any project folders.
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet -- projects.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Commit and push the updated catalog using the built-in GITHUB_TOKEN
+      # (no extra secrets/PATs needed). [skip ci] prevents this automated
+      # commit from re-triggering the workflow in a loop.
+      - name: Commit and push updated catalog
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add projects.json
+          git commit -m "chore: update project catalog [skip ci]"
+          git push
