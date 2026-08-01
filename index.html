@@ -126,6 +126,14 @@ body {
 }
 .filter-toggle-btn svg { width: 17px; height: 17px; }
 .filter-toggle-btn.active { border-color: var(--accent); color: var(--accent); }
+
+.options-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.options-panel.is-visible { grid-template-rows: 1fr; }
+.options-panel > * { overflow: hidden; }
 .filter-toggle-btn .badge {
   position: absolute;
   top: -5px;
@@ -272,7 +280,7 @@ body {
 }
 .card:active { transform: scale(0.988); }
 .card:hover { border-color: var(--accent); }
-.card.is-open { border-color: var(--accent); box-shadow: 0 2px 4px rgba(36,30,26,0.06), 0 8px 24px rgba(36,30,26,0.07); }
+.card.is-open { border-color: var(--ink-faint); box-shadow: 0 2px 4px rgba(36,30,26,0.06), 0 8px 24px rgba(36,30,26,0.07); }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .card-icon {
   flex-shrink: 0;
@@ -317,7 +325,7 @@ body {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
 }
 .card-chevron svg { width: 100%; height: 100%; }
-.card.is-open .card-chevron { transform: rotate(180deg); color: var(--accent); }
+.card.is-open .card-chevron { transform: rotate(180deg); color: var(--ink-soft); }
 .card-desc {
   font-size: 13.5px;
   color: var(--ink-soft);
@@ -451,14 +459,16 @@ html[data-theme="dark"] .tone-4 { --tone-bg: #3A2F1A; --tone-fg: #D9B860; }
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input id="search-input" type="text" placeholder="Search projects…" autocomplete="off">
       </div>
-      <button id="filter-toggle-btn" class="filter-toggle-btn" style="display:none;"></button>
-      <button id="theme-btn" class="theme-btn"></button>
+      <button id="options-toggle-btn" class="filter-toggle-btn" aria-label="Show options" title="Options"></button>
     </div>
-    <div id="chips-row" class="chips-row" style="display:none;"></div>
-    <div class="toolbar">
-      <span id="result-count" class="result-count">—</span>
-      <div class="toolbar-controls">
-        <button id="sort-btn" class="sort-btn"></button>
+    <div id="options-panel" class="options-panel">
+      <div id="chips-row" class="chips-row" style="display:none;"></div>
+      <div class="toolbar">
+        <span id="result-count" class="result-count">—</span>
+        <div class="toolbar-controls">
+          <button id="sort-btn" class="sort-btn"></button>
+          <button id="theme-btn" class="theme-btn"></button>
+        </div>
       </div>
     </div>
   </div>
@@ -711,21 +721,18 @@ html[data-theme="dark"] .tone-4 { --tone-bg: #3A2F1A; --tone-fg: #D9B860; }
   }
 
 
-  var filterToggleBtn = document.getElementById('filter-toggle-btn');
-  var filtersVisible = false;
+  var optionsToggleBtn = document.getElementById('options-toggle-btn');
+  var optionsPanel = document.getElementById('options-panel');
+  var optionsVisible = false;
+  var hasKeywords = false;
 
   function buildChips() {
     var allKeywords = new Set();
     state.projects.forEach(function(p) {
       if (!p._malformed) p.keywords.forEach(function(k) { allKeywords.add(k); });
     });
-    if (allKeywords.size === 0) {
-      chipsRow.style.display = 'none';
-      filterToggleBtn.style.display = 'none';
-      return;
-    }
-    filterToggleBtn.style.display = 'flex';
-    chipsRow.style.display = filtersVisible ? 'flex' : 'none';
+    hasKeywords = allKeywords.size > 0;
+    chipsRow.style.display = hasKeywords ? 'flex' : 'none';
     chipsRow.innerHTML = '';
     Array.from(allKeywords).sort(function(a, b) { return a.localeCompare(b); }).forEach(function(kw) {
       var chip = document.createElement('button');
@@ -743,32 +750,33 @@ html[data-theme="dark"] .tone-4 { --tone-bg: #3A2F1A; --tone-fg: #D9B860; }
         }
         applyFilters();
         renderList();
-        renderFilterToggleBtn();
+        renderOptionsToggleBtn();
       });
       chipsRow.appendChild(chip);
     });
-    renderFilterToggleBtn();
+    renderOptionsToggleBtn();
   }
 
-  function renderFilterToggleBtn() {
-    filterToggleBtn.innerHTML = '';
-    filterToggleBtn.appendChild(makeIcon('list-filter'));
-    filterToggleBtn.classList.toggle('active', state.activeChips.size > 0);
+  function renderOptionsToggleBtn() {
+    optionsToggleBtn.innerHTML = '';
+    optionsToggleBtn.appendChild(makeIcon('sliders-horizontal'));
+    optionsToggleBtn.classList.toggle('active', state.activeChips.size > 0 || optionsVisible);
     if (state.activeChips.size > 0) {
       var badge = document.createElement('span');
       badge.className = 'badge';
       badge.textContent = state.activeChips.size;
-      filterToggleBtn.appendChild(badge);
+      optionsToggleBtn.appendChild(badge);
     }
-    filterToggleBtn.setAttribute('aria-label', filtersVisible ? 'Hide filters' : 'Show filters');
-    filterToggleBtn.title = filtersVisible ? 'Hide filters' : 'Show filters';
+    optionsToggleBtn.setAttribute('aria-label', optionsVisible ? 'Hide options' : 'Show options');
+    optionsToggleBtn.title = optionsVisible ? 'Hide options' : 'Show options';
     refreshIcons();
   }
 
-  filterToggleBtn.addEventListener('click', function() {
-    filtersVisible = !filtersVisible;
-    chipsRow.style.display = filtersVisible ? 'flex' : 'none';
-    renderFilterToggleBtn();
+  optionsToggleBtn.addEventListener('click', function() {
+    optionsVisible = !optionsVisible;
+    optionsPanel.classList.toggle('is-visible', optionsVisible);
+    if (hasKeywords) chipsRow.style.display = 'flex';
+    renderOptionsToggleBtn();
   });
 
   function applyFilters() {
