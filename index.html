@@ -127,13 +127,8 @@ body {
 .filter-toggle-btn svg { width: 17px; height: 17px; }
 .filter-toggle-btn.active { border-color: var(--accent); color: var(--accent); }
 
-.options-panel {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.options-panel.is-visible { grid-template-rows: 1fr; }
-.options-panel > * { overflow: hidden; }
+.options-panel { display: none; }
+.options-panel.is-visible { display: block; }
 .filter-toggle-btn .badge {
   position: absolute;
   top: -5px;
@@ -251,10 +246,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
-  border-radius: var(--radius-sm);
+  border-radius: 7px;
   border: 1px solid var(--line);
   background: var(--bg-elevated);
   color: var(--ink-soft);
@@ -262,7 +257,7 @@ body {
   transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 .theme-btn:active { transform: scale(0.92); }
-.theme-btn svg { width: 17px; height: 17px; }
+.theme-btn svg { width: 13px; height: 13px; }
 .sort-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
 
 .card-list { display: flex; flex-direction: column; gap: 10px; }
@@ -759,7 +754,7 @@ html[data-theme="dark"] .tone-4 { --tone-bg: #3A2F1A; --tone-fg: #D9B860; }
 
   function renderOptionsToggleBtn() {
     optionsToggleBtn.innerHTML = '';
-    optionsToggleBtn.appendChild(makeIcon('sliders-horizontal'));
+    optionsToggleBtn.appendChild(makeIcon('list-filter'));
     optionsToggleBtn.classList.toggle('active', state.activeChips.size > 0 || optionsVisible);
     if (state.activeChips.size > 0) {
       var badge = document.createElement('span');
@@ -1039,7 +1034,7 @@ html[data-theme="dark"] .tone-4 { --tone-bg: #3A2F1A; --tone-fg: #D9B860; }
   }
 
   function renderList() {
-    resultCount.textContent = state.filtered.length + ' of ' + state.projects.filter(function(p) { return !p._malformed; }).length + ' projects';
+    resultCount.textContent = state.filtered.length + ' of ' + state.projects.filter(function(p) { return !p._malformed; }).length;
 
     contentArea.innerHTML = '';
 
