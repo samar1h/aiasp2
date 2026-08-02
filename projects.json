@@ -1,6 +1,17 @@
 [
   {
-    "title": "pdf2img",
+    "title": "PDF to Image Converter",
+    "description": "Convert PDF pages into high-quality PNG or JPG images directly in your browser.",
+    "keywords": [
+      "pdf",
+      "image",
+      "converter",
+      "png",
+      "jpg",
+      "utility"
+    ],
+    "icon": "icon.png",
+    "favicon": "favicon.ico",
     "source_url": "https://github.com/samar1h/aiasp2/tree/main/projects/pdf2img",
     "added": "2026-08-02"
   },
