@@ -1,6 +1,7 @@
 {
-    "title": "PDF to IMG",
-    "description": "Convert Pdf file to Images",
-    "keywords": ["pdf", "split", "document", "offline"],
-    "icon": "file-text",
-  },
+  "title": "PDF to Image Converter",
+  "description": "Convert PDF pages into high-quality PNG or JPG images directly in your browser.",
+  "keywords": ["pdf", "image", "converter", "png", "jpg", "utility"],
+  "icon": "icon.png",
+  "favicon": "favicon.ico"
+}
