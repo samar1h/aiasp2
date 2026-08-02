@@ -1,1 +1,6 @@
-{}
+{
+    "title": "PDF to IMG",
+    "description": "Convert Pdf file to Images",
+    "keywords": ["pdf", "split", "document", "offline"],
+    "icon": "file-text",
+  },
